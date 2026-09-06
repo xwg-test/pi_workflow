@@ -69,10 +69,14 @@ cp scripts/workflow.ts ~/.pi/agent/extensions/workflow.ts
 /workflow start      # 仅启动服务
 /workflow open       # 仅打开浏览器
 /workflow status     # 查看状态
-/workflow stop       # 停止服务
+/workflow stop       # 停止服务（优雅关闭：先停所有窗格子进程，再退服务，不留孤儿进程）
 ```
 
-> 插件路径探测：优先读环境变量 `WORKFLOW_DIR`，否则扫描 `~/workflow`、`~/projects/workflow` 等常见位置。
+> **注意**：关闭浏览器标签页**不会**停止服务。Workflow 服务是常驻 Node 进程，
+> 各窗格的 `pi --mode rpc` 子进程也独立运行。要真正关闭请用 `/workflow stop`
+> （或在启动它的终端按 Ctrl+C）。
+
+> 插件路径探测：优先读环境变量 `WORKFLOW_DIR`，否则扫描 `~/workflow`、`~/projects/workflow` 等常见位置（含当前 pi 工作目录）。
 
 环境变量（可选）：
 

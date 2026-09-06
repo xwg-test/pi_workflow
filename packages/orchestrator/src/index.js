@@ -249,6 +249,14 @@ async function main() {
     const url = new URL(req.url || "/", `http://${HOST}:${PORT}`);
     let p = url.pathname;
 
+    // 0) graceful shutdown endpoint (used by `/workflow stop` plugin)
+    if (p === "/shutdown") {
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: true }));
+      setTimeout(shutdown, 50); // let the response flush before exiting
+      return;
+    }
+
     // 1) upload custom background (image <=50MiB, video <=300MiB)
     if (req.method === "POST" && p === "/upload-bg") {
       await handleUploadBg(req, res, url);
@@ -649,10 +657,16 @@ async function main() {
     console.log(`  reference lib: ${LIB_DIR}\n`);
   });
 
-  process.on("SIGINT", () => {
+  // Stop every pane child then exit. Used by SIGINT/SIGTERM (Ctrl+C) and the
+  // /shutdown endpoint, so `/workflow stop` can shut down gracefully without
+  // leaving orphaned `pi --mode rpc` processes behind.
+  function shutdown() {
     for (const [, pn] of panes) { if (pn.client) pn.client.stop(); }
     process.exit(0);
-  });
+  }
+
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 }
 
 main().catch((err) => { console.error(err); process.exit(1); });

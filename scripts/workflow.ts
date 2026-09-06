@@ -35,6 +35,7 @@ function resolveWorkflowDir(): string | null {
   }
   const home = os.homedir();
   const candidates = [
+    process.cwd(), // 当前 pi 工作目录（在项目里启动 pi 时最直接命中）
     path.join(home, "workflow"),
     path.join(home, "Workflow"),
     path.join(home, "projects", "workflow"),
@@ -86,8 +87,34 @@ function openBrowser() {
   exec(cmd, (err) => { if (err) console.error("打开浏览器失败:", err.message); });
 }
 
-/** 停止服务：杀掉占用 3180 端口的进程（仅本机开发用） */
-function stopServer(): Promise<void> {
+/** 优雅停止：请求 orchestrator 的 /shutdown 接口（停掉所有窗格再退出） */
+function gracefulShutdown(): Promise<boolean> {
+  return new Promise((resolve) => {
+    const req = http.request(
+      { host: HOST, port: PORT, path: "/shutdown", method: "POST", timeout: 2000 },
+      (res) => {
+        res.resume();
+        resolve(res.statusCode === 200);
+      },
+    );
+    req.on("error", () => resolve(false));
+    req.on("timeout", () => { req.destroy(); resolve(false); });
+    req.end();
+  });
+}
+
+/** 轮询等待服务退出（最多 waitMs 毫秒），返回是否已停止 */
+async function waitUntilStopped(waitMs: number): Promise<boolean> {
+  const start = Date.now();
+  while (Date.now() - start < waitMs) {
+    if (!(await isRunning())) return true;
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  return false;
+}
+
+/** 兜底：强制杀掉占用 3180 端口的进程（仅本机开发用） */
+function forceKill(): Promise<void> {
   return new Promise((resolve) => {
     const isWin = process.platform === "win32";
     const find = isWin
@@ -102,6 +129,14 @@ function stopServer(): Promise<void> {
       exec(isWin ? `taskkill /F /PID ${pid}` : `kill ${pid}`, () => resolve());
     });
   });
+}
+
+/** 停止服务：先优雅停止（/shutdown），失败或超时再强杀兜底 */
+async function stopServer(): Promise<void> {
+  if (await gracefulShutdown()) {
+    if (await waitUntilStopped(3000)) return;
+  }
+  await forceKill();
 }
 
 export default function (pi: ExtensionAPI) {
