@@ -18,6 +18,7 @@
  * 路径探测：优先用环境变量 WORKFLOW_DIR，其次扫描常见位置。
  */
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type { AutocompleteItem } from "@earendil-works/pi-tui";
 import { spawn, exec } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
@@ -26,6 +27,14 @@ import http from "node:http";
 
 const HOST = "127.0.0.1";
 const PORT = 3180;
+
+// /workflow 子命令补全（输入 /workflow 后按 Tab 展示）
+const SUBCOMMANDS: AutocompleteItem[] = [
+  { value: "start", label: "start", description: "仅启动服务" },
+  { value: "open", label: "open", description: "仅打开浏览器" },
+  { value: "status", label: "status", description: "查看服务状态" },
+  { value: "stop", label: "stop", description: "停止服务" },
+];
 
 /** 探测 workflow 项目目录（环境变量 → 常见位置扫描） */
 function resolveWorkflowDir(): string | null {
@@ -142,6 +151,10 @@ async function stopServer(): Promise<void> {
 export default function (pi: ExtensionAPI) {
   pi.registerCommand("workflow", {
     description: "启动/打开 Workflow 多会话工作台",
+    getArgumentCompletions: (prefix: string): AutocompleteItem[] | null => {
+      const items = SUBCOMMANDS.filter((s) => s.value.startsWith(prefix));
+      return items.length > 0 ? items : null;
+    },
     handler: async (args, ctx) => {
       const sub = (args || "").trim().split(/\s+/)[0];
 
