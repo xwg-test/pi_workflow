@@ -1,0 +1,10 @@
+# 数据目录（会话、壁纸、历史、引用库）—— 不入库
+.workflow/
+
+# 依赖
+node_modules/
+packages/orchestrator/node_modules/
+
+# 日志 / 临时
+*.log
+tmp/

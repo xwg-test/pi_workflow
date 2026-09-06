@@ -1,0 +1,15 @@
+{
+  "name": "workflow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser multi-session workbench for pi — projects, persistent sessions, split panes",
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/start.js",
+    "dev": "node scripts/start.js --watch",
+    "install:orchestrator": "npm install --prefix packages/orchestrator --no-audit --no-fund"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

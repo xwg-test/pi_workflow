@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <title>Workflow</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>🖥️ Workflow <span class="tag">M5</span></h1>
+      <nav class="views">
+        <button id="view-control" class="view active">🖥️ 控制室</button>
+        <button id="view-workbench" class="view">🧩 工作台</button>
+      </nav>
+      <div class="toolbar top">
+      </div>
+      <button id="lib-toggle">📚 引用库</button>
+    </header>
+
+    <div id="lib-panel" hidden>
+      <h3>跨窗格参考库 <em>（数据在本地参考库，窗格互不越权）</em></h3>
+      <ul id="ref-list"></ul>
+    </div>
+
+    <div id="layout3" class="workflow-grid">
+      <!-- 左：项目抽屉（上=项目列表/窗格树 / 下=文件管理器，可折叠） -->
+      <aside id="left-rail">
+        <button id="left-toggle" class="mini rail-toggle" title="展开/收缩左侧">«</button>
+        <section class="rail-section rail-top">
+          <div class="rail-head"><span>🗂 项目</span>
+            <button id="new-project" class="mini" title="新建项目">＋</button>
+            <span class="rail-count" id="left-count"></span>
+            <button id="card-mode-toggle" class="mini" title="切换卡片/列表">▤</button>
+          </div>
+          <div id="project-tree" class="project-tree"></div>
+        </section>
+        <section class="rail-section rail-bottom">
+          <div class="rail-head"><span>📁 文件</span><span class="crumb" id="file-crumb"></span></div>
+          <div id="file-tree" class="file-tree"></div>
+        </section>
+      </aside>
+
+      <!-- 中：控制室首页(项目卡片墙) 或 工作台(tabs + 分屏) -->
+      <div id="center">
+        <div id="control-home" class="control-home"></div>
+        <div id="workbench">
+          <div id="tabbar" class="tabbar"></div>
+          <main id="panes"></main>
+        </div>
+      </div>
+
+      <!-- 右：文件预览（可拖拽拉大，默认收起） -->
+      <div id="split-preview" class="splitbar v"></div>
+      <aside id="preview-rail" class="collapsed">
+        <div class="rail-head">
+          <button id="preview-toggle" class="mini" title="展开/收缩预览">▸</button>
+          <span>👁 预览</span>
+          <span id="preview-path"></span>
+        </div>
+        <div id="preview-body" class="preview-body"></div>
+      </aside>
+    </div>
+
+    <!-- 控制室底部：背景设定(多级菜单) + 网格列数拖拽 -->
+    <div id="control-dock" class="control-dock">
+      <div class="dock-group">
+        <div class="bg-menu-wrap">
+          <button id="bg-menu-btn" class="dock-btn">🖼 背景设定 ▾</button>
+          <div id="bg-menu" class="bg-menu" hidden>
+            <button class="bg-item" data-act="default">默认</button>
+            <button class="bg-item has-sub" data-act="custom">自定义 ▸</button>
+            <div id="bg-custom-sub" class="bg-sub" hidden>
+              <button class="bg-item sub" data-act="image">🖼 上传图片</button>
+              <button class="bg-item sub" data-act="video">🎬 上传动态</button>
+              <div class="bg-hist-label" data-target="bg-hist-images">图片历史 <span class="bg-hist-arrow">▸</span></div>
+              <div id="bg-hist-images" class="bg-hist" hidden></div>
+              <div class="bg-hist-label" data-target="bg-hist-videos">动态历史 <span class="bg-hist-arrow">▸</span></div>
+              <div id="bg-hist-videos" class="bg-hist" hidden></div>
+            </div>
+          </div>
+        </div>
+        <input id="bg-file-image" type="file" accept="image/*" hidden />
+        <input id="bg-file-video" type="file" accept="video/mp4,video/webm,video/quicktime" hidden />
+      </div>
+      <div class="dock-group">
+        <span class="dock-label">网格列数</span>
+        <input id="grid-cols" type="range" min="2" max="8" step="1" value="5" />
+        <span id="grid-cols-val" class="dock-val">5 列</span>
+      </div>
+    </div>
+
+    <div id="hintbar">左侧选项目 → 顶部 tabs 切窗格 · 中间可分屏 · 点文件在右侧预览</div>
+  </div>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
